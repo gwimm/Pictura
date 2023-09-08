@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 mod args;
 mod selection_tool;
 use std::env;

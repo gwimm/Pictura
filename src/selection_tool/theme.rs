@@ -1,3 +1,6 @@
+use iced::widget::container;
+use iced::{application, color};
+
 pub mod widget {
     #![allow(dead_code)]
     use crate::selection_tool::theme::Theme;
@@ -7,9 +10,6 @@ pub mod widget {
     pub type Button<'a, Message> = iced::widget::Button<'a, Message, Renderer>;
     pub type Cursor = iced::mouse::Cursor;
 }
-
-use iced::widget::container;
-use iced::{ application, color };
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Theme;
@@ -23,12 +23,15 @@ impl application::StyleSheet for Theme {
         }
     }
 }
+
 #[derive(Debug, Clone, Copy, Default)]
 pub enum Container {
     #[default]
     Default,
+		#[allow(dead_code)]
     Bordered,
 }
+
 impl container::StyleSheet for Theme {
     type Style = Container;
 

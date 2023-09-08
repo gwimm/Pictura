@@ -1,13 +1,15 @@
-use iced::{Point, Command, Element, Alignment, widget::{container, column}, Length};
-use iced_wgpu::Renderer;
-use iced_winit::runtime::Program;
-use log::info;
 use crate::selection_tool::rectangle::Rectangle;
+use iced::{
+    widget::{column, container},
+    Alignment, Command, Element, Length, Point, Size,
+};
+use iced_wgpu::Renderer;
+use iced_winit::runtime::{program::State, Debug, Program};
+use log::info;
 
 use super::theme::Theme;
 
 pub mod state;
-
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -26,14 +28,24 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(_flags: ()) -> App {
-        App {
+    pub fn program_state(
+        size: Size<f32>,
+        renderer: &mut <Self as Program>::Renderer,
+        debug: &mut Debug,
+    ) -> State<Self> {
+        State::new(Default::default(), size, renderer, debug)
+    }
+}
+
+impl Default for App {
+    fn default() -> Self {
+        Self {
             width: 0f32,
             height: 0f32,
             pressed: false,
             released: false,
-            cursor_pressed_position: Point {x:0.0, y:0.0},
-            cursor_released_position: Point {x:0.0, y:0.0},
+            cursor_pressed_position: Point { x: 0.0, y: 0.0 },
+            cursor_released_position: Point { x: 0.0, y: 0.0 },
         }
     }
 }
@@ -42,8 +54,8 @@ impl Program for App {
     type Message = Message;
     type Renderer = Renderer<Theme>;
 
-    fn update(&mut self, _message: Message) -> Command<Message> {
-        match _message {
+    fn update(&mut self, message: Message) -> Command<Message> {
+        match message {
             Message::OnMousePressed => {
                 info!("Mouse pressed");
                 self.width = 0f32;
@@ -53,14 +65,13 @@ impl Program for App {
                 Command::none()
             }
 
-            Message::OnMouseMoved(_point) => {
+            Message::OnMouseMoved(point) => {
                 if self.pressed && !self.released {
-                    self.width = _point.x - self.cursor_pressed_position.x;
-                    self.height = _point.y - self.cursor_pressed_position.y;
-                    self.cursor_released_position = _point;
-                }
-                else if !self.released { 
-                    self.cursor_pressed_position = _point;
+                    self.width = point.x - self.cursor_pressed_position.x;
+                    self.height = point.y - self.cursor_pressed_position.y;
+                    self.cursor_released_position = point;
+                } else if !self.released {
+                    self.cursor_pressed_position = point;
                 }
                 Command::none()
             }
@@ -71,23 +82,18 @@ impl Program for App {
                 self.released = true;
                 Command::none()
             }
-
-            _ => { Command::none() }
         }
     }
 
     fn view(&self) -> Element<Message, Renderer<Theme>> {
-        let content = column![
-            Rectangle::new(self.cursor_pressed_position.x, self.cursor_pressed_position.y, self.width, self.height),
-        ]
-            .padding([self.cursor_pressed_position.y, self.cursor_pressed_position.x])
-            .spacing(0)
-            .align_items(Alignment::Start);
+        let content = column![Rectangle::new(self.width, self.height)]
+        .padding([self.cursor_pressed_position.y, self.cursor_pressed_position.x])
+        .spacing(0)
+        .align_items(Alignment::Start);
 
         container(content)
             .width(Length::Fill)
             .height(Length::Fill)
             .into()
     }
-
 }
